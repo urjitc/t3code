@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @effect-diagnostics nodeBuiltinImport:off globalConsole:off - A tiny build-time asset script; plain Node keeps it readable.
-// Renders assets/app-icon/icon.svg into every icon file the desktop, web, and installer
+// Renders assets/app-icon/icon.png (a full-bleed square) into every icon file the desktop, web, and installer
 // builds read, for all three brands (prod, nightly, dev). Needs `rsvg-convert` (brew install librsvg).
 // Usage: pnpm icons:app
 
@@ -10,11 +10,9 @@ import * as NodeFS from "node:fs";
 import { BRAND_ASSET_PATHS, DEVELOPMENT_PUBLIC_ICON_OVERRIDES } from "./lib/brand-assets.ts";
 import { encodePngIco, WINDOWS_ICON_SIZES } from "./lib/icon-export.ts";
 
-const source = NodeFS.readFileSync("assets/app-icon/icon.svg", "utf8");
-const inner = source.slice(
-  source.indexOf(">", source.indexOf("<svg")) + 1,
-  source.lastIndexOf("</svg>"),
-);
+const png = NodeFS.readFileSync("assets/app-icon/icon.png").toString("base64");
+const inner = `<image width="1024" height="1024" href="data:image/png;base64,${png}"/>`;
+const source = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${inner}</svg>`;
 
 // Classic macOS safe area: 824px rounded body inset 100px, with a soft drop shadow.
 const rounded = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">

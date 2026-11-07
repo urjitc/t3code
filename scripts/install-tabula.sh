@@ -16,7 +16,7 @@ fi
 dmg=$(ls -t "$repo"/release/Tabula-Rasa-*-arm64.dmg | head -1)
 sleep 2
 osascript -e 'quit app "Tabula Rasa"' || true
-while pgrep -xq "Tabula Rasa"; do sleep 1; done
+while ps -axo comm= | grep -q "/Tabula Rasa.app/Contents/MacOS/Tabula Rasa$"; do sleep 1; done
 
 mount=$(hdiutil attach -nobrowse "$dmg" | tail -1 | cut -f3)
 rm -rf "/Applications/Tabula Rasa.app"

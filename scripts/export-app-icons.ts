@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Renders assets/kitava/icon.svg into every icon file the desktop, web, and installer
+// Renders assets/app-icon/icon.svg into every icon file the desktop, web, and installer
 // builds read, for all three brands (prod, nightly, dev). Needs `rsvg-convert` (brew install librsvg).
-// Usage: pnpm icons:kitava
+// Usage: pnpm icons:app
 
 import * as NodeChildProcess from "node:child_process";
 import * as NodeFS from "node:fs";
@@ -9,7 +9,7 @@ import * as NodeFS from "node:fs";
 import { BRAND_ASSET_PATHS, DEVELOPMENT_PUBLIC_ICON_OVERRIDES } from "./lib/brand-assets.ts";
 import { encodePngIco, WINDOWS_ICON_SIZES } from "./lib/icon-export.ts";
 
-const source = NodeFS.readFileSync("assets/kitava/icon.svg", "utf8");
+const source = NodeFS.readFileSync("assets/app-icon/icon.svg", "utf8");
 const inner = source.slice(
   source.indexOf(">", source.indexOf("<svg")) + 1,
   source.lastIndexOf("</svg>"),

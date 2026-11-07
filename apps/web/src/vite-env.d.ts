@@ -17,6 +17,8 @@ interface ImportMetaEnv {
   readonly T3CODE_DESKTOP_UPDATE_REPOSITORY: string;
   readonly T3CODE_FEATURE_SECRETS: string;
   readonly T3CODE_FEATURE_PULL_REQUESTS: string;
+  readonly T3CODE_UPSTREAM_BASE: string;
+  readonly T3CODE_FORK_REPO_ROOT: string;
   readonly APP_VERSION: string;
 }
 

@@ -1,5 +1,9 @@
 // @effect-diagnostics-next-line nodeBuiltinImport:off -- Vite config runs before any Effect runtime.
+import * as NodeChildProcess from "node:child_process";
+// @effect-diagnostics-next-line nodeBuiltinImport:off -- Vite config runs before any Effect runtime.
 import * as NodeFSP from "node:fs/promises";
+// @effect-diagnostics-next-line nodeBuiltinImport:off -- Vite config runs before any Effect runtime.
+import * as NodePath from "node:path";
 import * as NodeZlib from "node:zlib";
 
 import react from "@vitejs/plugin-react";
@@ -51,6 +55,19 @@ const configuredDesktopUpdateRepository =
   "";
 const configuredFeatureSecrets = process.env.T3CODE_FEATURE_SECRETS?.trim() || "";
 const configuredFeaturePullRequests = process.env.T3CODE_FEATURE_PULL_REQUESTS?.trim() || "";
+// Tabula Rasa: the fork checkout and the stable upstream tag it was last merged from.
+const forkRepoRoot = NodePath.resolve(import.meta.dirname, "../..");
+const upstreamBase = (() => {
+  try {
+    return NodeChildProcess.execFileSync(
+      "git",
+      ["describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", "--exclude", "*-*"],
+      { cwd: forkRepoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+  } catch {
+    return "";
+  }
+})();
 const configuredHostedAppUrl = (() => {
   const explicitHostedAppUrl = process.env.VITE_HOSTED_APP_URL?.trim();
   if (explicitHostedAppUrl) {
@@ -312,6 +329,8 @@ export default defineConfig(() => {
       ),
       "import.meta.env.T3CODE_FEATURE_SECRETS": JSON.stringify(configuredFeatureSecrets),
       "import.meta.env.T3CODE_FEATURE_PULL_REQUESTS": JSON.stringify(configuredFeaturePullRequests),
+      "import.meta.env.T3CODE_UPSTREAM_BASE": JSON.stringify(upstreamBase),
+      "import.meta.env.T3CODE_FORK_REPO_ROOT": JSON.stringify(forkRepoRoot),
       "import.meta.env.VITE_RELEASE_CHANNEL": JSON.stringify(configuredReleaseChannel),
       "import.meta.env.APP_VERSION": JSON.stringify(configuredAppVersion),
     },

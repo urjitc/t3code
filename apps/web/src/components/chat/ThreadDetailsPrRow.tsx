@@ -26,6 +26,7 @@ import { cn } from "~/lib/utils";
 import { useServerConfigs } from "~/state/entities";
 import { pullRequestEnvironment } from "~/state/pullRequests";
 import { useUiStateStore } from "~/uiStateStore";
+import { isPullRequestsFeatureEnabled } from "~/env";
 import {
   useEnvironmentQueryIsNewer,
   useEnvironmentQueryRefresh,
@@ -107,7 +108,8 @@ export function ThreadDetailsPrRow({
   onStopWatching?: (() => void) | undefined;
 }) {
   const serverConfigs = useServerConfigs();
-  const supportsPullRequests = serverConfigs.get(environmentId) !== undefined;
+  const supportsPullRequests =
+    isPullRequestsFeatureEnabled && serverConfigs.get(environmentId) !== undefined;
   const repository = sourceControlClients.repositorySelector(project?.repositoryIdentity);
   const reference: PullRequestRef | null =
     supportsPullRequests && project !== null

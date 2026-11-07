@@ -262,6 +262,7 @@ import { PullRequestGlyph } from "~/components/pullRequest/pullRequestIcons";
 import { readPullRequestListPreferences } from "~/components/pullRequest/pullRequestListPreferences";
 import { useThreadRouteTarget } from "../hooks/useThreadRouteTarget";
 import { threadRecentUse } from "@t3tools/shared/paletteSearch";
+import { isPullRequestsFeatureEnabled } from "../env";
 
 const EMPTY_BROWSE_ENTRIES: FilesystemBrowseResult["entries"] = [];
 const ADD_PROJECT_ENTRY_GROUP = "add-project";
@@ -1375,6 +1376,7 @@ function OpenCommandPaletteDialog(props: {
   }
 
   if (
+    isPullRequestsFeatureEnabled &&
     activeThread !== null &&
     threadPullRequestLinkMode(activeThreadServerConfig?.environment.capabilities) !== "unsupported"
   ) {
@@ -1544,7 +1546,10 @@ function OpenCommandPaletteDialog(props: {
 
   actionItems.push(themeEditorItem);
 
-  if (environments.some((environment) => environment.serverConfig !== null)) {
+  if (
+    isPullRequestsFeatureEnabled &&
+    environments.some((environment) => environment.serverConfig !== null)
+  ) {
     actionItems.push({
       kind: "action",
       value: "action:pull-requests",

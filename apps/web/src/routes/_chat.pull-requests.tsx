@@ -1,5 +1,7 @@
 import type { EnvironmentId, ProjectId } from "@t3tools/contracts";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+
+import { isPullRequestsFeatureEnabled } from "../env";
 
 import { type PullRequestListSort } from "../components/pullRequest/pullRequestListPreferences";
 import { SORT_OPTIONS } from "../components/pullRequest/pullRequestListOptions";
@@ -28,6 +30,9 @@ function pullRequestSearchLabels(raw: unknown): Partial<Pick<PullRequestsSearch,
 }
 
 export const Route = createFileRoute("/_chat/pull-requests")({
+  beforeLoad: () => {
+    if (!isPullRequestsFeatureEnabled) throw redirect({ to: "/", replace: true });
+  },
   validateSearch: (raw: Record<string, unknown>): PullRequestsSearch => ({
     involvement:
       raw.involvement === "reviewing" || raw.involvement === "authored" ? raw.involvement : "all",

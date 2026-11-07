@@ -27,6 +27,7 @@ import { environmentServerConfigsAtom, serverEnvironment } from "../state/server
 import { usePrimaryEnvironmentId } from "../state/environments";
 import { reviewEnvironment } from "../state/review";
 import { useAtomQueryRunner } from "../state/use-atom-query-runner";
+import { isPullRequestsFeatureEnabled } from "../env";
 
 export function usePullRequestPreviewTarget(environmentId: EnvironmentId | null, url: string) {
   const projects = useProjects();
@@ -34,7 +35,7 @@ export function usePullRequestPreviewTarget(environmentId: EnvironmentId | null,
   return resolvePullRequestPreviewTarget({
     environmentId,
     projects,
-    pullRequestsEnabled: serverConfig !== null,
+    pullRequestsEnabled: isPullRequestsFeatureEnabled && serverConfig !== null,
     url,
   });
 }

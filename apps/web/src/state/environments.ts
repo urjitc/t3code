@@ -18,6 +18,7 @@ import {
 import { primaryEnvironmentIdAtom } from "./primaryEnvironment";
 import { relayEnvironmentDiscovery } from "./relay";
 import { usePreparedConnection } from "./session";
+import { isPullRequestsFeatureEnabled } from "../env";
 
 export interface EnvironmentPresentation extends BaseEnvironmentPresentation {
   readonly environmentId: EnvironmentId;
@@ -104,7 +105,8 @@ export function useEnvironmentIdentities() {
 }
 
 export function usePullRequestsSupported() {
-  return useAtomValue(environmentSummaries.pullRequestsSupportedAtom);
+  const supported = useAtomValue(environmentSummaries.pullRequestsSupportedAtom);
+  return isPullRequestsFeatureEnabled && supported;
 }
 
 export function useEnvironmentMachines() {

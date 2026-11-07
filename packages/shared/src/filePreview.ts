@@ -155,6 +155,8 @@ export function officePreviewKind(file: {
   const mime = file.mimeType?.split(";", 1)[0]?.trim().toLowerCase() ?? "";
   if (mime === "text/rtf") return "rtf";
   for (const kind of Object.keys(OFFICE_MIME_TYPES) as OfficePreviewKind[]) {
+    // Tabula Rasa ships no Word/Excel/PowerPoint renderer (~41 MB of WebAssembly).
+    if (kind === "docx" || kind === "xlsx" || kind === "pptx") continue;
     if (mime === OFFICE_MIME_TYPES[kind]) return kind;
     if (
       (!mime ||

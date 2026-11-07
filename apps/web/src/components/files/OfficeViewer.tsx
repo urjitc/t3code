@@ -22,8 +22,6 @@ const NotebookPreview = lazy(() => import("./NotebookPreview"));
 
 type Workbook = Extract<OfficeWorkerResult, { type: "ods" }>;
 
-const OpenXmlOfficeViewer = lazy(() => import("./OpenXmlOfficeViewer"));
-
 async function readOfficeFile(src: string, signal: AbortSignal) {
   const response = await fetch(src, { signal });
   if (!response.ok) throw new Error("The file could not be loaded. Close it and try again.");
@@ -55,9 +53,7 @@ export default function OfficeViewer(props: {
 }) {
   if (props.kind === "docx" || props.kind === "xlsx" || props.kind === "pptx")
     return (
-      <Suspense fallback={<FileSurfaceLoading />}>
-        <OpenXmlOfficeViewer {...props} kind={props.kind} />
-      </Suspense>
+      <FileSurfaceNotice>Word, Excel, and PowerPoint previews are not included.</FileSurfaceNotice>
     );
   return <ExtendedOfficeViewer {...props} />;
 }

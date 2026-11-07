@@ -1,5 +1,3 @@
-import type { DevicePlatform } from "@t3tools/contracts";
-
 export type DeviceModelId = "iphone-18-pro" | "iphone-18-pro-max" | "ipad-pro-13-m5" | "iphone-duo";
 
 export interface DeviceModelSource {
@@ -14,15 +12,6 @@ export interface DeviceAccessorySource {
 }
 
 export type DeviceAssetSource = DeviceModelSource | DeviceAccessorySource;
-
-export function resolveDeviceModelId(platform: DevicePlatform, name: string): DeviceModelId | null {
-  if (platform !== "ios") return null;
-  if (/^iPhone Duo$/i.test(name)) return "iphone-duo";
-  if (/^iPhone 18 Pro Max$/i.test(name)) return "iphone-18-pro-max";
-  if (/^iPhone 18 Pro$/i.test(name)) return "iphone-18-pro";
-  if (/^iPad Pro 13-inch \(M5\)$/i.test(name)) return "ipad-pro-13-m5";
-  return null;
-}
 
 /** Each request owns its result. A cancelled or superseded parse must still release its resources. */
 export function createDeviceModelSlot<

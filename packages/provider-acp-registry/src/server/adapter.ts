@@ -93,7 +93,7 @@ const MistralVibeSessionRetrying = Schema.Struct({
 });
 
 /** Mistral Vibe (v2.25.5) reports SDK backoff through this ACP extension. */
-export function registerMistralVibeAcpExtensions(context: AcpAdapterV2ExtensionContext) {
+function registerMistralVibeAcpExtensions(context: AcpAdapterV2ExtensionContext) {
   return context.runtime.handleExtNotification(
     "_session/retrying",
     MistralVibeSessionRetrying,

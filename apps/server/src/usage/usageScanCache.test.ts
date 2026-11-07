@@ -83,16 +83,16 @@ describe("scan cache round trip", () => {
         ],
       ],
     ]);
-    original.set("/grok.jsonl", {
+    original.set("/pi.jsonl", {
       size: 40,
       malformedRecords: 2,
       mtimeMs: 300,
-      provider: "grok",
+      provider: "pi",
       records: [
-        record({ provider: "grok", model: "grok-4.5-build", dedupeKey: "s:p:grok-4.5-build" }),
-        record({ provider: "grok", model: "<synthetic>", dedupeKey: "s:p:<synthetic>" }),
+        record({ provider: "pi", model: "kimi-k3", dedupeKey: "s:p:kimi-k3" }),
+        record({ provider: "pi", model: "<synthetic>", dedupeKey: "s:p:<synthetic>" }),
       ],
-      tailRecords: [record({ provider: "grok", model: "<synthetic>", dedupeKey: null })],
+      tailRecords: [record({ provider: "pi", model: "<synthetic>", dedupeKey: null })],
       position: position({ resumeOffset: 30, guardLength: 30, guardHash: 123 }),
     });
     const state = initialCodexScanState();

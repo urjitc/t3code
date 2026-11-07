@@ -232,7 +232,7 @@ class AcpModelSelectionError extends Schema.TaggedError<AcpModelSelectionError>(
  * directly onto TurnTokenUsage: the response's counters already cover exactly
  * this prompt.
  */
-export function acpPerTurnPromptUsage(
+function acpPerTurnPromptUsage(
   usage: EffectAcpSchema.Usage | null | undefined,
   hasSubagents: boolean,
   terminalStatus: OrchestrationV2ProviderTurn["status"],
@@ -540,7 +540,7 @@ function acpSupportsImagePrompts(input: {
   return input.flavorSupportsImagePrompts === true || input.negotiatedImage === true;
 }
 
-export function acpScopedNativeId(instanceId: ProviderInstanceId, nativeId: string): string {
+function acpScopedNativeId(instanceId: ProviderInstanceId, nativeId: string): string {
   return `provider-instance:${encodeURIComponent(instanceId)}:${nativeId}`;
 }
 
@@ -1060,7 +1060,7 @@ const ACP_V1_DIFF_MAX_EDITS = 1_000;
  * A `snippet` patch has no known location. Keep its recorded text, so no view numbers it
  * from line 1.
  */
-export function acpToolCallSnippetEdit(content: unknown) {
+function acpToolCallSnippetEdit(content: unknown) {
   if (!Array.isArray(content)) return undefined;
   const diffs = content.flatMap((entry) => {
     const diff = unknownRecord(entry);
@@ -1430,7 +1430,7 @@ function acpRootSessionUpdateIngestsOutput(
   }
 }
 
-export function acpPostSettleWakeEvidence(
+function acpPostSettleWakeEvidence(
   notification: EffectAcpSchema.SessionNotification,
   flavor: Pick<AcpAdapterV2Flavor, "extractBackgroundToolMutation"> = {},
 ): boolean {
@@ -1452,7 +1452,7 @@ export function acpPostSettleWakeEvidence(
 }
 
 /** Still-running tool updates can outlast the quiet window; they must not offer completion wakes. */
-export function acpPostSettleContinuationOfferEvidence(
+function acpPostSettleContinuationOfferEvidence(
   notification: EffectAcpSchema.SessionNotification,
   flavor: Pick<AcpAdapterV2Flavor, "extractBackgroundToolMutation" | "normalizeToolCall"> = {},
 ): boolean {
@@ -1531,7 +1531,7 @@ function acpPostSettleMonitorPromptShouldSuppress(
   return mutation?.status === "running";
 }
 
-export function acpCompletedTurnShouldTerminalizeTool(
+function acpCompletedTurnShouldTerminalizeTool(
   tool: AcpToolCallState,
   flavor: Pick<AcpAdapterV2Flavor, "extractBackgroundTaskId" | "extractSubagentUpdate">,
 ): boolean {

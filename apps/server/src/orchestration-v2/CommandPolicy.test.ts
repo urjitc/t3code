@@ -14,7 +14,6 @@ import {
 import * as Effect from "effect/Effect";
 
 import { CodexProviderCapabilitiesV2 } from "./Adapters/CodexAdapterV2.ts";
-import { CursorProviderCapabilitiesV2 } from "@t3tools/provider-cursor/testing";
 import * as CommandPolicy from "./CommandPolicy.ts";
 
 const commandId = CommandId.make("command-policy-test");
@@ -247,15 +246,18 @@ it.each(["/compact", " /LOGOUT "])("queues a steer sent while %s runs", (text) =
 const layer = it.layer(CommandPolicy.layer);
 
 layer("CommandPolicyV2", (it) => {
-  it.effect("falls back to portable context when Cursor cannot fork natively", () =>
+  it.effect("falls back to portable context when the provider cannot fork natively", () =>
     Effect.gen(function* () {
       const policy = yield* CommandPolicy.CommandPolicyV2;
 
       const result = yield* policy.decideForkExecution({
         commandId,
         threadId,
-        providerInstanceId: ProviderInstanceId.make("cursor"),
-        capabilities: CursorProviderCapabilitiesV2,
+        providerInstanceId: ProviderInstanceId.make("codex"),
+        capabilities: capabilities((current) => ({
+          ...current,
+          threads: { ...current.threads, canForkThread: false, canForkFromTurn: false },
+        })),
         sameProvider: true,
         hasStrongNativeSource: true,
         sourceRunStatus: "completed",

@@ -15,13 +15,6 @@ import {
   type RuntimeMode,
   type ServerSettings,
 } from "@t3tools/contracts";
-import { acpRegistryClient } from "@t3tools/provider-acp-registry/client";
-import { cursorClient } from "@t3tools/provider-cursor/client";
-import { fxClient } from "@t3tools/provider-fx/client";
-import { grokClient } from "@t3tools/provider-grok/client";
-import { kiroClient } from "@t3tools/provider-kiro/client";
-import { museClient } from "@t3tools/provider-muse/client";
-import { openCodeClient } from "@t3tools/provider-opencode/client";
 import { piClient } from "@t3tools/provider-pi/client";
 import type { ProviderClientDefinition } from "@t3tools/provider-core/client";
 
@@ -42,16 +35,7 @@ const known = (
     { label, configFields: new Set(Object.keys(settingsSchema.fields)), hasDefaultInstance },
   ] as const;
 
-const PACKAGED_CLIENTS: ReadonlyArray<ProviderClientDefinition> = [
-  cursorClient,
-  grokClient,
-  fxClient,
-  kiroClient,
-  museClient,
-  openCodeClient,
-  piClient,
-  acpRegistryClient,
-];
+const PACKAGED_CLIENTS: ReadonlyArray<ProviderClientDefinition> = [piClient];
 
 /**
  * Fields that make an instance launch without the settings a pin sets: managed Codex runs T3's own

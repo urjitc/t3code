@@ -1,23 +1,31 @@
 import type { SVGProps } from "react";
 
-/** Tabula Rasa's brand mark: six linked sockets, drawn in currentColor (name kept to ease upstream merges). */
+// One link, centred on the origin along x: a 40-thick bar with a pointed bulge in the middle.
+const LINK = "M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z";
+const LINK_TRANSFORMS = [
+  "translate(310 125)",
+  "translate(310 495)",
+  "translate(310 865)",
+  "translate(495 310) rotate(90)",
+  "translate(125 680) rotate(90)",
+];
+
+/**
+ * Tabula Rasa's brand mark in currentColor: six linked sockets on a 370 grid, so every link
+ * bridges the same gap. Mirrors assets/app-icon/mark.svg; the name is kept to ease upstream merges.
+ */
 export function T3Wordmark(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg {...props} viewBox="-12 -12 704 934" xmlns="http://www.w3.org/2000/svg">
-      <g fill="none" stroke="currentColor" strokeWidth="42">
-        <circle cx="125" cy="128" r="104" />
-        <circle cx="555" cy="128" r="104" />
-        <circle cx="125" cy="452" r="104" />
-        <circle cx="555" cy="452" r="104" />
-        <circle cx="125" cy="780" r="104" />
-        <circle cx="555" cy="780" r="104" />
+    <svg {...props} viewBox="0 0 620 990" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="currentColor" strokeWidth="40">
+        {[125, 495, 865].flatMap((cy) =>
+          [125, 495].map((cx) => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="105" />),
+        )}
       </g>
       <g fill="currentColor">
-        <rect x="225" y="108" width="230" height="40" />
-        <rect x="225" y="432" width="230" height="40" />
-        <rect x="225" y="760" width="230" height="40" />
-        <rect x="535" y="228" width="40" height="128" />
-        <rect x="105" y="552" width="40" height="132" />
+        {LINK_TRANSFORMS.map((transform) => (
+          <path key={transform} d={LINK} transform={transform} />
+        ))}
       </g>
     </svg>
   );

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 990">
+  <!-- Six linked sockets. Rings: r=105, stroke 40 (outer radius 125). Centres 370 apart on both
+       axes, so every link bridges the same 120 gap. Each link is a 40-thick bar (same as the ring
+       stroke) with an 80x92 pointed bulge at its middle, and tucks 20 into each ring. -->
+  <g fill="none" stroke="#fff" stroke-width="40">
+    <circle cx="125" cy="125" r="105"/><circle cx="495" cy="125" r="105"/>
+    <circle cx="125" cy="495" r="105"/><circle cx="495" cy="495" r="105"/>
+    <circle cx="125" cy="865" r="105"/><circle cx="495" cy="865" r="105"/>
+  </g>
+  <g fill="#fff">
+    <path transform="translate(310 125)" d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"/>
+    <path transform="translate(310 495)" d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"/>
+    <path transform="translate(310 865)" d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"/>
+    <path transform="translate(495 310) rotate(90)" d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"/>
+    <path transform="translate(125 680) rotate(90)" d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"/>
+  </g>
+</svg>

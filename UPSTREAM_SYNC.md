@@ -27,7 +27,7 @@ Run every command from the repo root with `mise exec -- corepack pnpm ...`.
   - Office previews (`files/office`, `OpenXmlOfficeViewer`, `@betteroffice/*`), 3D device models (`*.glb`).
   - If upstream adds a new agent provider, do not register it.
 - **Fork changes, keep ours:** "Tabula Rasa" branding (app name, bundle id `dev.urjitc.tabularasa`,
-  artifact name, icons from `assets/app-icon/mark.svg`), the sidebar header without logo, the
+  artifact name, icons from `assets/app-icon/icon.svg`), the sidebar header without logo, the
   `T3CODE_FEATURE_PULL_REQUESTS` gates, the upstream-sync button, `T3Wordmark`'s socket mark.
 - **Everything else:** take upstream's version, then re-apply our small edit on top if one existed.
 - **Database migrations:** take upstream's as-is. Never write a new migration in this fork.

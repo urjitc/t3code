@@ -12,7 +12,7 @@ const LINK_TRANSFORMS = [
 
 /**
  * Tabula Rasa's brand mark in currentColor: six linked sockets on a 370 grid, so every link
- * bridges the same gap. Mirrors assets/app-icon/mark.svg; the name is kept to ease upstream merges.
+ * bridges the same gap. Mirrors the geometry in assets/app-icon/icon.svg; the name is kept to ease upstream merges.
  */
 export function T3Wordmark(props: SVGProps<SVGSVGElement>) {
   return (

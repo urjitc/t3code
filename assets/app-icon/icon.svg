@@ -1,58 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- App icon source (full bleed): a horned crown over a burning core. Rendered by scripts/export-app-icons.ts. -->
+  <!-- App icon source (full bleed): a plain robe with six linked white sockets. Rendered by scripts/export-app-icons.ts. -->
   <defs>
-    <radialGradient id="bg" cx="50%" cy="55%" r="75%">
-      <stop offset="0" stop-color="#2a0606"/>
-      <stop offset="0.5" stop-color="#110304"/>
-      <stop offset="1" stop-color="#040203"/>
+    <radialGradient id="bg" cx="50%" cy="45%" r="75%">
+      <stop offset="0" stop-color="#2b2219"/>
+      <stop offset="0.55" stop-color="#14100c"/>
+      <stop offset="1" stop-color="#060504"/>
     </radialGradient>
-    <radialGradient id="core" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#fff2c8"/>
-      <stop offset="0.22" stop-color="#ffb23e"/>
-      <stop offset="0.55" stop-color="#d92a12"/>
-      <stop offset="1" stop-color="#4a0505"/>
+    <radialGradient id="aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#c8742a" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#c8742a" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#ff4a1a" stop-opacity="0.6"/>
-      <stop offset="1" stop-color="#ff4a1a" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="horn" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#d9c7a8"/>
-      <stop offset="0.5" stop-color="#6b5a4a"/>
-      <stop offset="1" stop-color="#1c1513"/>
+    <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#efe6d4"/>
+      <stop offset="0.6" stop-color="#cbbfa8"/>
+      <stop offset="1" stop-color="#8f8370"/>
     </linearGradient>
+    <linearGradient id="fold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a6f5e" stop-opacity="0.0"/>
+      <stop offset="1" stop-color="#5a5044" stop-opacity="0.55"/>
+    </linearGradient>
+    <radialGradient id="socket" cx="40%" cy="35%" r="65%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#e9eef2"/>
+      <stop offset="1" stop-color="#9aa5ad"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <circle cx="512" cy="590" r="400" fill="url(#glow)"/>
+  <ellipse cx="512" cy="520" rx="400" ry="420" fill="url(#aura)"/>
 
-  <!-- Sweeping horns -->
-  <path d="M430 470 Q300 420 250 280 Q232 220 262 150 Q280 260 350 330 Q400 380 470 400 Z" fill="url(#horn)"/>
-  <path d="M594 470 Q724 420 774 280 Q792 220 762 150 Q744 260 674 330 Q624 380 554 400 Z" fill="url(#horn)"/>
+  <!-- Robe: neckline, long sleeves, flared body -->
+  <path d="M430 150 Q512 205 594 150 L700 185 Q800 240 862 520 L770 548 L716 340 L748 892 Q512 932 276 892 L308 340 L254 548 L162 520 Q224 240 324 185 Z"
+        fill="url(#cloth)" stroke="#3a3128" stroke-width="10" stroke-linejoin="round"/>
+  <!-- Neck opening and centre seam -->
+  <path d="M430 150 Q512 250 594 150" fill="none" stroke="#3a3128" stroke-width="10" stroke-linecap="round"/>
+  <path d="M512 210 L512 900" stroke="#8a7e6b" stroke-width="6" opacity="0.5"/>
+  <!-- Soft folds -->
+  <path d="M380 420 Q360 650 372 880 L330 876 Q330 640 352 420 Z" fill="url(#fold)"/>
+  <path d="M644 420 Q664 650 652 880 L694 876 Q694 640 672 420 Z" fill="url(#fold)"/>
+  <!-- Rope belt -->
+  <path d="M312 470 Q512 505 712 470" fill="none" stroke="#6d5a42" stroke-width="16" stroke-linecap="round"/>
 
-  <!-- Spiked crown band -->
-  <path d="M318 520 L360 360 L410 470 L462 300 L512 450 L562 300 L614 470 L664 360 L706 520 Q512 470 318 520 Z" fill="#120808" stroke="#3a1a12" stroke-width="6" stroke-linejoin="round"/>
-
-  <!-- Burning core -->
-  <circle cx="512" cy="640" r="190" fill="#0d0405"/>
-  <circle cx="512" cy="640" r="160" fill="url(#core)"/>
-  <!-- Slit pupil -->
-  <path d="M512 530 Q548 640 512 750 Q476 640 512 530 Z" fill="#0d0405"/>
-
-  <!-- Fangs ringing the core -->
-  <g fill="#e8dcc4">
-    <path d="M400 760 L430 820 L452 772 Z"/>
-    <path d="M572 772 L594 820 L624 760 Z"/>
-    <path d="M470 795 L490 860 L508 800 Z"/>
-    <path d="M516 800 L534 860 L554 795 Z"/>
+  <!-- Six linked sockets (2 x 3), snake-linked -->
+  <g fill="none" stroke="#f4f1ea" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M440 330 L584 330 L584 560 L440 560 L440 760 L584 760"/>
   </g>
-
-  <!-- Embers -->
-  <g fill="#ffb23e">
-    <circle cx="180" cy="560" r="7" opacity="0.7"/>
-    <circle cx="850" cy="520" r="8" opacity="0.6"/>
-    <circle cx="820" cy="820" r="5" opacity="0.7"/>
-    <circle cx="210" cy="840" r="6" opacity="0.6"/>
-    <circle cx="512" cy="200" r="5" opacity="0.8"/>
+  <g filter="url(#glow)" stroke="#4a4036" stroke-width="8">
+    <circle cx="440" cy="330" r="46" fill="url(#socket)"/>
+    <circle cx="584" cy="330" r="46" fill="url(#socket)"/>
+    <circle cx="584" cy="560" r="46" fill="url(#socket)"/>
+    <circle cx="440" cy="560" r="46" fill="url(#socket)"/>
+    <circle cx="440" cy="760" r="46" fill="url(#socket)"/>
+    <circle cx="584" cy="760" r="46" fill="url(#socket)"/>
   </g>
 </svg>

@@ -1,11 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import { SecretsSettingsPanel } from "../components/settings/SecretsSettings";
-import { isSecretsFeatureEnabled } from "../env";
-
+// Tabula Rasa ships no secret providers, so this settings page is gone.
 export const Route = createFileRoute("/_chat/settings/secrets")({
   beforeLoad: () => {
-    if (!isSecretsFeatureEnabled) throw redirect({ to: "/settings/general", replace: true });
+    throw redirect({ to: "/settings/general", replace: true });
   },
-  component: SecretsSettingsPanel,
 });

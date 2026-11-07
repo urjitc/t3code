@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @effect-diagnostics nodeBuiltinImport:off globalConsole:off - A tiny build-time asset script; plain Node keeps it readable.
 // Renders assets/app-icon/icon.svg into every icon file the desktop, web, and installer
 // builds read, for all three brands (prod, nightly, dev). Needs `rsvg-convert` (brew install librsvg).
 // Usage: pnpm icons:app

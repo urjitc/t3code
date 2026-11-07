@@ -48,12 +48,6 @@ export interface ProviderClientDefinition {
   readonly acpRegistryAgentIds?: ReadonlyArray<string>;
 }
 
-export function defineProviderClient<const Definition extends ProviderClientDefinition>(
-  definition: Definition,
-): Definition {
-  return definition;
-}
-
 export interface ProviderClientRegistry {
   readonly definitions: ReadonlyArray<ProviderClientDefinition>;
   readonly get: (

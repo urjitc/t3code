@@ -6,9 +6,8 @@ import {
 } from "@t3tools/contracts";
 import { makeProviderClientRegistry } from "@t3tools/provider-core/client";
 import { modelShortName } from "@t3tools/provider-core/modelShortName";
-import { piClient } from "@t3tools/provider-pi/client";
 
-// Tabula Rasa ships only the agents it uses: Codex, Claude and Pi.
+// Tabula Rasa ships only the agents it uses: Codex and Claude.
 export const providerClients = makeProviderClientRegistry([
   {
     driverKind: ProviderDriverKind.make("codex"),
@@ -24,7 +23,6 @@ export const providerClients = makeProviderClientRegistry([
     acpRegistryAgentIds: ["claude-acp"],
     settingsSchema: ClaudeSettings,
   },
-  piClient,
 ]);
 
 export function getProviderClient(driver: string | null | undefined) {

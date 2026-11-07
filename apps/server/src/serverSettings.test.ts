@@ -2369,7 +2369,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
   (it) => {
     const claude = ProviderDriverKind.make("claudeAgent");
     const codex = ProviderDriverKind.make("codex");
-    const pi = ProviderDriverKind.make("pi");
+    const antigravity = ProviderDriverKind.make("antigravity");
     const bedrock = { name: "CLAUDE_CODE_USE_BEDROCK", value: "1", sensitive: false };
     const policy: ManagedPolicyDocument = {
       schemaVersion: 1,
@@ -2394,40 +2394,43 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
         const service = yield* ServerSettingsModule.ServerSettingsService;
         const config = yield* ServerConfig.ServerConfig;
         const fs = yield* FileSystem.FileSystem;
-        const piId = ProviderInstanceId.make("pi_work");
+        const antigravityId = ProviderInstanceId.make("antigravity_work");
         yield* fs.writeFileString(
           config.settingsPath,
           JSON.stringify({
             providerInstances: {
-              [piId]: { driver: pi, enabled: true },
+              [antigravityId]: { driver: antigravity, enabled: true },
               // A default instance id is no proof of its driver.
-              codex: { driver: pi, enabled: true },
+              codex: { driver: antigravity, enabled: true },
             },
-            textGenerationModelSelection: { instanceId: piId, model: "auto" },
+            textGenerationModelSelection: { instanceId: antigravityId, model: "auto" },
           }),
         );
 
         const settings = yield* service.getSettings;
         // Never deleted: the instance stays for its threads, and the registry shows it unavailable.
-        assert.equal(settings.providerInstances[piId]?.driver, pi);
+        assert.equal(settings.providerInstances[antigravityId]?.driver, antigravity);
         // Built-in text generation does not fall back onto a disallowed driver either.
         assert.equal(settings.textGenerationModelSelection.instanceId, "claudeAgent");
 
         const rejected = yield* service
           .updateProviderInstance({
             operation: "create",
-            instanceId: ProviderInstanceId.make("pi_new"),
-            instance: { driver: pi, enabled: true },
+            instanceId: ProviderInstanceId.make("antigravity_new"),
+            instance: { driver: antigravity, enabled: true },
           })
           .pipe(Effect.flip);
         assert.equal(rejected.operation, "use-disallowed-provider");
-        assert.equal(rejected.message, "Example Corp's policy does not allow the Pi provider.");
+        assert.equal(
+          rejected.message,
+          "Example Corp's policy does not allow the Antigravity provider.",
+        );
         // Switching it on for one project is enabling it too.
         const perProject = yield* service
           .updateSettings({
             projectSettingsOverrides: {
               [ProjectId.make("project-a")]: {
-                providerInstances: { [piId]: { enabled: true } },
+                providerInstances: { [antigravityId]: { enabled: true } },
               },
             },
           })
@@ -2437,18 +2440,18 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
         // The client echoes a default instance that was running before it was configured.
         yield* service.updateProviderInstance({
           operation: "upsert",
-          instanceId: ProviderInstanceId.make("pi"),
-          instance: { driver: pi, enabled: true },
+          instanceId: ProviderInstanceId.make("antigravity"),
+          instance: { driver: antigravity, enabled: true },
         });
 
         // Turning it off, or removing it, is still the user's call.
         yield* service.updateProviderInstance({
           operation: "upsert",
-          instanceId: piId,
-          instance: { driver: pi, enabled: false },
+          instanceId: antigravityId,
+          instance: { driver: antigravity, enabled: false },
         });
-        yield* service.updateProviderInstance({ operation: "remove", instanceId: piId });
-        assert.isUndefined((yield* service.getSettings).providerInstances[piId]);
+        yield* service.updateProviderInstance({ operation: "remove", instanceId: antigravityId });
+        assert.isUndefined((yield* service.getSettings).providerInstances[antigravityId]);
       }).pipe(Effect.provide(layerServerSettings(policy))),
     );
 
@@ -2590,7 +2593,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
   "server settings under a runtime mode ceiling",
   (it) => {
     const claude = ProviderDriverKind.make("claudeAgent");
-    const pi = ProviderDriverKind.make("pi");
+    const codex = ProviderDriverKind.make("codex");
     const policy: ManagedPolicyDocument = {
       schemaVersion: 1,
       organization: "Example Corp",
@@ -2663,7 +2666,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
         const config = yield* ServerConfig.ServerConfig;
         const fs = yield* FileSystem.FileSystem;
         const claudeId = ProviderInstanceId.make("claudeAgent");
-        const piId = ProviderInstanceId.make("pi_work");
+        const codexId = ProviderInstanceId.make("codex_work");
         const userVariable = {
           name: "CLAUDE_CONFIG_DIR",
           value: "/tmp/allow-all",
@@ -2684,8 +2687,8 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
           JSON.stringify({
             providerInstances: {
               [claudeId]: storedClaude,
-              [piId]: {
-                driver: pi,
+              [codexId]: {
+                driver: codex,
                 config: { binaryPath: "/tmp/agent", launchArgs: "--yolo", customModels: ["m1"] },
               },
             },
@@ -2702,7 +2705,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
         assert.deepEqual(claudeInstance.environment, [
           { name: "CLAUDE_CODE_USE_BEDROCK", value: "1", sensitive: false },
         ]);
-        assert.deepEqual(effective.providerInstances[piId]?.config, { customModels: ["m1"] });
+        assert.deepEqual(effective.providerInstances[codexId]?.config, { customModels: ["m1"] });
 
         const refused = (instance: typeof claudeInstance) =>
           service
@@ -2724,17 +2727,20 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))(
           environment: [{ name: "NODE_OPTIONS", value: "--require /tmp/x.js", sensitive: false }],
         });
         assert.equal(environment.managedSetting, "providerInstances.claudeAgent.environment");
-        const piLaunchArgs = yield* service
+        const codexLaunchArgs = yield* service
           .updateProviderInstance({
             operation: "upsert",
-            instanceId: piId,
+            instanceId: codexId,
             instance: {
-              driver: pi,
+              driver: codex,
               config: { customModels: ["m1"], launchArgs: "--dangerously-skip-permissions" },
             },
           })
           .pipe(Effect.flip);
-        assert.equal(piLaunchArgs.managedSetting, "providerInstances.pi_work.config.launchArgs");
+        assert.equal(
+          codexLaunchArgs.managedSetting,
+          "providerInstances.codex_work.config.launchArgs",
+        );
 
         // Unrelated writes carry the stored instance through unchanged, duplicates included.
         yield* service.updateSettings({ defaultAutoPull: true });

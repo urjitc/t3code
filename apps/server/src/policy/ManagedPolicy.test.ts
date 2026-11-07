@@ -180,9 +180,8 @@ it.layer(NodeServices.layer)("ManagedPolicy.load", (it) => {
         "config.homePath",
         "environment",
       ]);
-      assert.deepEqual(providers?.lockedInstanceFields?.[ProviderDriverKind.make("pi")], [
+      assert.deepEqual(providers?.lockedInstanceFields?.[ProviderDriverKind.make("antigravity")], [
         "config.binaryPath",
-        "config.launchArgs",
         "environment",
       ]);
       // The host variable that replaces Codex's launch arguments is ignored too.
@@ -391,8 +390,8 @@ it.layer(NodeServices.layer)("ManagedPolicy.load", (it) => {
         },
       });
       assert.equal(
-        disallowedDriverReason(policy.summary, ProviderDriverKind.make("pi")),
-        "Example Corp's policy does not allow the Pi provider.",
+        disallowedDriverReason(policy.summary, ProviderDriverKind.make("antigravity")),
+        "Example Corp's policy does not allow the Antigravity provider.",
       );
       assert.isUndefined(disallowedDriverReason(policy.summary, ProviderDriverKind.make("codex")));
     }),

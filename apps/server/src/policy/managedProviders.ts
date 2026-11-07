@@ -15,7 +15,6 @@ import {
   type RuntimeMode,
   type ServerSettings,
 } from "@t3tools/contracts";
-import { piClient } from "@t3tools/provider-pi/client";
 import type { ProviderClientDefinition } from "@t3tools/provider-core/client";
 
 interface KnownDriver {
@@ -35,7 +34,7 @@ const known = (
     { label, configFields: new Set(Object.keys(settingsSchema.fields)), hasDefaultInstance },
   ] as const;
 
-const PACKAGED_CLIENTS: ReadonlyArray<ProviderClientDefinition> = [piClient];
+const PACKAGED_CLIENTS: ReadonlyArray<ProviderClientDefinition> = [];
 
 /**
  * Fields that make an instance launch without the settings a pin sets: managed Codex runs T3's own

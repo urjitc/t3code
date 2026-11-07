@@ -83,16 +83,16 @@ describe("scan cache round trip", () => {
         ],
       ],
     ]);
-    original.set("/pi.jsonl", {
+    original.set("/codex-placeholders.jsonl", {
       size: 40,
       malformedRecords: 2,
       mtimeMs: 300,
-      provider: "pi",
+      provider: "codex",
       records: [
-        record({ provider: "pi", model: "kimi-k3", dedupeKey: "s:p:kimi-k3" }),
-        record({ provider: "pi", model: "<synthetic>", dedupeKey: "s:p:<synthetic>" }),
+        record({ provider: "codex", model: "gpt-6-astra", dedupeKey: "s:p:gpt-6-astra" }),
+        record({ provider: "codex", model: "<synthetic>", dedupeKey: "s:p:<synthetic>" }),
       ],
-      tailRecords: [record({ provider: "pi", model: "<synthetic>", dedupeKey: null })],
+      tailRecords: [record({ provider: "codex", model: "<synthetic>", dedupeKey: null })],
       position: position({ resumeOffset: 30, guardLength: 30, guardHash: 123 }),
     });
     const state = initialCodexScanState();
@@ -183,14 +183,6 @@ describe("scan cache round trip", () => {
           },
         }),
       });
-      original.set("/gone-pi.jsonl", {
-        ...original.get("/gone.jsonl")!,
-        size: 256,
-        provider: "pi",
-        records: [record({ provider: "pi", model: "anthropic/claude-fable-5" })],
-        malformedRecords: 3,
-        position: position({ state: { sessionId: "session-a" } }),
-      });
       const cleanCodex = {
         ...original.get("/gone-codex.jsonl")!,
         malformedRecords: 0,
@@ -237,15 +229,6 @@ describe("scan cache round trip", () => {
         size: version >= 8 ? cleanCodex.size : -1,
         position: { resumeOffset: 0, guardLength: 0, guardHash: 0, state: null },
       });
-      expect(restored.get("/gone-pi.jsonl")).toEqual(
-        version >= 6
-          ? original.get("/gone-pi.jsonl")
-          : {
-              ...original.get("/gone-pi.jsonl"),
-              size: -1,
-              position: { resumeOffset: 0, guardLength: 0, guardHash: 0, state: null },
-            },
-      );
     },
   );
 

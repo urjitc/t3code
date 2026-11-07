@@ -36,7 +36,6 @@ const RUST = /^native\/(resource-monitor|kde-snap-shot|hyprland-snap-shot)\//;
 const TEST_ONLY_DEPS = {
   // Evals import the server's source to test its real model-facing text.
   "@t3tools/evals": ["t3"],
-  "@t3tools/provider-pi": ["@t3tools/client-runtime"],
   "@t3tools/scripts": ["@t3tools/desktop", "@t3tools/mobile", "@t3tools/web", "t3"],
 };
 // The server bundles the web build without importing it.

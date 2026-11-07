@@ -31,7 +31,6 @@ const workspaceFiles = [
   "packages/tailscale/package.json",
   "packages/provider-core/package.json",
   "packages/provider-testing/package.json",
-  "packages/provider-pi/package.json",
   "packages/provider-acp/package.json",
   "packages/provider-acp-registry/package.json",
   "packages/secret-provider-core/package.json",

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Kitava app icon source (full bleed): a horned crown over a burning core. Rendered by scripts/export-kitava-icons.ts. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="55%" r="75%">
+      <stop offset="0" stop-color="#2a0606"/>
+      <stop offset="0.5" stop-color="#110304"/>
+      <stop offset="1" stop-color="#040203"/>
+    </radialGradient>
+    <radialGradient id="core" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff2c8"/>
+      <stop offset="0.22" stop-color="#ffb23e"/>
+      <stop offset="0.55" stop-color="#d92a12"/>
+      <stop offset="1" stop-color="#4a0505"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ff4a1a" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#ff4a1a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="horn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9c7a8"/>
+      <stop offset="0.5" stop-color="#6b5a4a"/>
+      <stop offset="1" stop-color="#1c1513"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="590" r="400" fill="url(#glow)"/>
+
+  <!-- Sweeping horns -->
+  <path d="M430 470 Q300 420 250 280 Q232 220 262 150 Q280 260 350 330 Q400 380 470 400 Z" fill="url(#horn)"/>
+  <path d="M594 470 Q724 420 774 280 Q792 220 762 150 Q744 260 674 330 Q624 380 554 400 Z" fill="url(#horn)"/>
+
+  <!-- Spiked crown band -->
+  <path d="M318 520 L360 360 L410 470 L462 300 L512 450 L562 300 L614 470 L664 360 L706 520 Q512 470 318 520 Z" fill="#120808" stroke="#3a1a12" stroke-width="6" stroke-linejoin="round"/>
+
+  <!-- Burning core -->
+  <circle cx="512" cy="640" r="190" fill="#0d0405"/>
+  <circle cx="512" cy="640" r="160" fill="url(#core)"/>
+  <!-- Slit pupil -->
+  <path d="M512 530 Q548 640 512 750 Q476 640 512 530 Z" fill="#0d0405"/>
+
+  <!-- Fangs ringing the core -->
+  <g fill="#e8dcc4">
+    <path d="M400 760 L430 820 L452 772 Z"/>
+    <path d="M572 772 L594 820 L624 760 Z"/>
+    <path d="M470 795 L490 860 L508 800 Z"/>
+    <path d="M516 800 L534 860 L554 795 Z"/>
+  </g>
+
+  <!-- Embers -->
+  <g fill="#ffb23e">
+    <circle cx="180" cy="560" r="7" opacity="0.7"/>
+    <circle cx="850" cy="520" r="8" opacity="0.6"/>
+    <circle cx="820" cy="820" r="5" opacity="0.7"/>
+    <circle cx="210" cy="840" r="6" opacity="0.6"/>
+    <circle cx="512" cy="200" r="5" opacity="0.8"/>
+  </g>
+</svg>

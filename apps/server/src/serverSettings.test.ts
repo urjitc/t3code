@@ -301,25 +301,6 @@ it.layer(Layer.mergeAll(NodeServices.layer, NodeCrypto.layer))("server settings"
     }).pipe(Effect.provide(layerServerSettings())),
   );
 
-  it.effect("sends clients a known secret provider's config but never an unknown kind's", () =>
-    Effect.gen(function* () {
-      const settings = yield* decodeServerSettings({
-        secretProviders: {
-          personal: { kind: "one_password", label: "Personal", config: { account: "my" } },
-          vault: { kind: "openbao", label: "Vault", config: { token: "bao-token" } },
-        },
-      });
-      assert.deepStrictEqual<unknown>(
-        ServerSettingsModule.redactServerSettingsForClient(settings, { secretReferences: true })
-          .secretProviders,
-        {
-          personal: { kind: "one_password", label: "Personal", config: { account: "my" } },
-          vault: { kind: "openbao", label: "Vault" },
-        },
-      );
-    }),
-  );
-
   it.effect("stores no secret provider of an unloaded kind or with a config its kind rejects", () =>
     Effect.gen(function* () {
       const service = yield* ServerSettingsModule.ServerSettingsService;

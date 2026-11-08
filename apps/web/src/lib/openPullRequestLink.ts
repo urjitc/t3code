@@ -76,6 +76,8 @@ export function useOpenChangeRequestLink(
     const resolvedThreadRef = targetThreadRef ?? threadRef;
     const resolvedPanelRef = panelRef ?? resolvedThreadRef;
     const openPullRequest = () => {
+      // Without the pull request feature there is no in-app viewer, so the link opens in the browser.
+      if (!isPullRequestsFeatureEnabled) return false;
       // Read at click time: every provider status push replaces the config map, and
       // subscribing would hand every rendered link a new handler. Projects likewise, so a
       // link can resolve against a snapshot that arrived after this handler was built.

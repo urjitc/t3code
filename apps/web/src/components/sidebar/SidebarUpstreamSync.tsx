@@ -162,7 +162,7 @@ export function useUpstreamSync() {
     label: newerRelease ? `Upstream ${newerRelease} available, sync` : "Sync with upstream",
     icon: (
       <span className="relative inline-flex">
-        <RefreshCwIcon />
+        <RefreshCwIcon className="size-4" />
         {newerRelease ? (
           <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary" />
         ) : null}

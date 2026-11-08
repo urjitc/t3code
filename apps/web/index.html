@@ -434,9 +434,7 @@
       }
 
       #boot-shell-logo {
-        width: 64px;
         height: 64px;
-        object-fit: contain;
       }
 
       /* App CSS locks body and #root scrolling once main loads, so the error screen scrolls itself. */
@@ -673,8 +671,39 @@
   <body>
     <div id="root">
       <div id="boot-shell">
-        <div id="boot-shell-card" aria-label="T3 Code splash screen">
-          <img id="boot-shell-logo" src="/apple-touch-icon.png" alt="T3 Code" />
+        <div id="boot-shell-card" aria-label="Tabula Rasa splash screen">
+          <svg id="boot-shell-logo" viewBox="0 0 620 990" role="img" aria-label="Tabula Rasa">
+            <g fill="none" stroke="currentColor" stroke-width="40">
+              <circle cx="125" cy="125" r="105" />
+              <circle cx="495" cy="125" r="105" />
+              <circle cx="125" cy="495" r="105" />
+              <circle cx="495" cy="495" r="105" />
+              <circle cx="125" cy="865" r="105" />
+              <circle cx="495" cy="865" r="105" />
+            </g>
+            <g fill="currentColor">
+              <path
+                d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"
+                transform="translate(310 125)"
+              />
+              <path
+                d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"
+                transform="translate(310 495)"
+              />
+              <path
+                d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"
+                transform="translate(310 865)"
+              />
+              <path
+                d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"
+                transform="translate(495 310) rotate(90)"
+              />
+              <path
+                d="M-80-20H-40Q-18-26 0-46Q18-26 40-20H80V20H40Q18 26 0 46Q-18 26-40 20H-80Z"
+                transform="translate(125 680) rotate(90)"
+              />
+            </g>
+          </svg>
         </div>
       </div>
     </div>

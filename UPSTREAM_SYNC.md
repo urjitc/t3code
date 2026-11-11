@@ -60,3 +60,9 @@ test results, and that the new build is ready. End by saying the user can reply 
 When the user asks to restart or install, run `scripts/install-tabula.sh`. It detaches, quits Tabula
 (which ends this agent's session), installs the new build into `/Applications/Tabula Rasa.app`
 and reopens it.
+
+The installer signs the app with `scripts/sign-tabula.sh`, using the "Tabula Rasa Local Signing"
+certificate in the login keychain (self-signed, identifier `dev.urjitc.tabularasa`). A stable
+signature keeps the macOS permissions agents rely on (Accessibility, Screen Recording, Automation,
+Full Disk Access) across rebuilds. If the certificate is missing, the installer says signing failed
+and the permissions must be granted again. Recreate it per the comment in `scripts/sign-tabula.sh`.

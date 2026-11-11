@@ -22,6 +22,7 @@ mount=$(hdiutil attach -nobrowse "$dmg" | tail -1 | cut -f3)
 rm -rf "/Applications/Tabula Rasa.app"
 ditto "$mount/Tabula Rasa.app" "/Applications/Tabula Rasa.app"
 hdiutil detach -quiet "$mount"
+"$repo/scripts/sign-tabula.sh" "/Applications/Tabula Rasa.app" || echo "Signing failed; macOS permissions may need granting again"
 killall Dock || true  # refresh the cached Dock icon
 open "/Applications/Tabula Rasa.app"
 echo "Installed $dmg"

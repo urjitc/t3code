@@ -50,9 +50,11 @@ edit, the same way earlier removals did (empty registries, feature flags), rathe
 1. `git push origin main-custom`.
 2. `mise exec -- corepack pnpm dist:desktop:dmg:arm64` (about 75 s).
 
-## 5. Install
+## 5. Report, then wait to install
 
-Run `scripts/install-tabula.sh` **last**. It detaches, quits Tabula (which ends this agent's
-session), installs the new build into `/Applications/Tabula Rasa.app` and reopens it.
-Before running it, post a short summary: target tag, conflicts and how each was resolved,
-test results. That summary is all the user sees after the restart.
+Do not install on your own. Post a short summary: target tag, conflicts and how each was resolved,
+test results, and that the new build is ready. End by saying the user can reply "restart" when ready.
+
+When the user asks to restart or install, run `scripts/install-tabula.sh`. It detaches, quits Tabula
+(which ends this agent's session), installs the new build into `/Applications/Tabula Rasa.app`
+and reopens it.

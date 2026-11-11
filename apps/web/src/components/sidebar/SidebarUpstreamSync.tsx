@@ -60,13 +60,13 @@ function syncPrompt(target: string): string {
   return [
     `Sync this Tabula Rasa fork with upstream T3 Code ${target}.`,
     `This build is based on ${UPSTREAM_BASE || "an unknown upstream tag"}.`,
-    "Follow UPSTREAM_SYNC.md in the repo root exactly, including the final install step.",
+    "Follow UPSTREAM_SYNC.md in the repo root exactly. Don't install or restart Tabula until I ask.",
   ].join("\n");
 }
 
 /**
  * Sidebar action that starts an agent thread in the fork checkout to merge upstream,
- * verify, push, rebuild and reinstall Tabula. Marked when a newer upstream release exists.
+ * verify, push and rebuild; it installs the build only when asked. Marked when a newer upstream release exists.
  */
 export function useUpstreamSync() {
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ export function useUpstreamSync() {
       return;
     }
     const confirmed = await requestConfirmDialog(
-      `Sync Tabula with upstream ${target}?\nAn agent will merge upstream into main-custom, run checks, push, rebuild, then quit and reinstall Tabula.`,
+      `Sync Tabula with upstream ${target}?\nAn agent will merge upstream into main-custom, run checks, push and rebuild. Tabula restarts only when you tell the agent to.`,
     );
     if (!confirmed) return;
 

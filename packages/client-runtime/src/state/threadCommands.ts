@@ -42,6 +42,7 @@ import {
   revertThreadCheckpoint,
   setThreadInteractionMode,
   setThreadRuntimeMode,
+  moveThreadToProject,
   pinThread,
   reorderPinnedThread,
   reorderActiveThread,
@@ -189,6 +190,12 @@ export function createThreadEnvironmentAtoms<R, E>(
     unpin: createEnvironmentCommand(runtime, {
       label: "environment-data:commands:thread:unpin",
       execute: unpinThread,
+      scheduler,
+      concurrency,
+    }),
+    moveToProject: createEnvironmentCommand(runtime, {
+      label: "environment-data:commands:thread:move-to-project",
+      execute: moveThreadToProject,
       scheduler,
       concurrency,
     }),
@@ -451,6 +458,11 @@ export function createThreadEnvironmentAtoms<R, E>(
       ...thread,
       pinnedAt: null,
       pinOrderKey: null,
+    })),
+    moveToProject: optimistic.wrap(commands.moveToProject, (thread, input) => ({
+      ...thread,
+      projectId: input.projectId,
+      branch: null,
     })),
     reorderPin: optimistic.wrap(commands.reorderPin, (thread, input) => ({
       ...thread,

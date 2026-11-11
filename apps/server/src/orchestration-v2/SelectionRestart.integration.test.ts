@@ -29,6 +29,7 @@ import { CodexProviderCapabilitiesV2 } from "./Adapters/CodexAdapterV2.ts";
 import * as EffectWorker from "./EffectWorker.ts";
 import * as EventSink from "./EventSink.ts";
 import * as Orchestrator from "./Orchestrator.ts";
+import * as ProjectStore from "./ProjectStore.ts";
 import * as ProviderAdapterRegistry from "./ProviderAdapterRegistry.ts";
 import * as ProviderReplayHarness from "./testkit/ProviderReplayHarness.ts";
 import { checkpointWorkspace } from "@t3tools/provider-testing/replayWorkspace";
@@ -894,6 +895,168 @@ it.live.each(["active", "idle", "selection-command", "pooled", "separate-home"] 
           assert.isEmpty(third.contextHandoffs);
           assert.deepEqual(messages, ["first", "second", "third"]);
         }).pipe(Effect.provide(ProviderReplayHarness.layerWithRegistry({ name }, layerRegistry)));
+      }),
+    ),
+);
+
+it.live.each(["pooled", "exclusive"] as const)(
+  "moving a thread to another project resumes its %s session's conversation in the new folder",
+  (sessionKind) =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const fromRoot = yield* checkpointWorkspace(`project-move-from-${sessionKind}`);
+        const toRoot = yield* checkpointWorkspace(`project-move-to-${sessionKind}`);
+        const threadId = ThreadId.make("thread:project-move");
+        const worktreeThreadId = ThreadId.make("thread:project-move-worktree");
+        const fromProjectId = ProjectId.make("project:move-from");
+        const toProjectId = ProjectId.make("project:move-to");
+        const state = yield* Ref.make<RestartAdapterState>({
+          activeTurn: null,
+          opened: [],
+          started: [],
+          closedSessionCount: 0,
+          failedReplacementOpen: true,
+        });
+
+        const result = yield* Effect.gen(function* () {
+          const orchestrator = yield* Orchestrator.OrchestratorV2;
+          const worker = yield* EffectWorker.OrchestrationEffectWorkerV2;
+          const eventSink = yield* EventSink.EventSinkV2;
+          const projects = yield* ProjectStore.ProjectStoreV2;
+          let sequence = 0;
+          for (const [projectId, workspaceRoot] of [
+            [fromProjectId, fromRoot],
+            [toProjectId, toRoot],
+          ] as const) {
+            sequence += 1;
+            yield* projects.apply({
+              sequence,
+              eventId: EventId.make(`event:${projectId}`),
+              aggregateKind: "project",
+              aggregateId: projectId,
+              occurredAt: "2026-11-11T00:00:00.000Z",
+              commandId: null,
+              causationEventId: null,
+              correlationId: null,
+              metadata: {},
+              type: "project.created",
+              payload: {
+                projectId,
+                title: projectId,
+                workspaceRoot,
+                defaultModelSelection: null,
+                scripts: [],
+                createdAt: "2026-11-11T00:00:00.000Z",
+                updatedAt: "2026-11-11T00:00:00.000Z",
+              },
+            });
+          }
+          const create = (id: ThreadId, worktreePath: string | null) =>
+            orchestrator.dispatch({
+              type: "thread.create",
+              createdBy: "user",
+              creationSource: "web",
+              commandId: CommandId.make(`command:${id}:create`),
+              threadId: id,
+              projectId: fromProjectId,
+              title: "Made in the wrong project",
+              modelSelection: replacementSelection,
+              runtimeMode: "full-access",
+              interactionMode: "default",
+              branch: worktreePath === null ? "main" : "feature",
+              worktreePath,
+            });
+          const move = (id: ThreadId, projectId: ProjectId) =>
+            orchestrator.dispatch({
+              type: "thread.project.move",
+              commandId: CommandId.make(`command:${id}:move:${projectId}`),
+              threadId: id,
+              projectId,
+            });
+          const sendAndComplete = (text: string) =>
+            Effect.gen(function* () {
+              const completed = yield* eventSink
+                .stream({ threadId, afterSequence: yield* eventSink.latestSequence({ threadId }) })
+                .pipe(
+                  Stream.map((stored) => stored.event),
+                  Stream.filter(
+                    (event) => event.type === "run.updated" && event.payload.status === "completed",
+                  ),
+                  Stream.take(1),
+                  Stream.runDrain,
+                  Effect.forkScoped,
+                );
+              yield* orchestrator.dispatch({
+                type: "message.dispatch",
+                createdBy: "user",
+                creationSource: "web",
+                commandId: CommandId.make(`command:project-move:${text}`),
+                threadId,
+                messageId: MessageId.make(`message:project-move:${text}`),
+                text,
+                attachments: [],
+                modelSelection: replacementSelection,
+                dispatchMode: { type: "start_immediately" },
+              });
+              yield* Fiber.join(completed);
+              yield* worker.drain();
+            });
+
+          yield* create(threadId, null);
+          yield* create(worktreeThreadId, fromRoot);
+          yield* sendAndComplete("before");
+          const before = yield* orchestrator.getThreadProjection(threadId);
+          const sameProject = yield* move(threadId, fromProjectId).pipe(Effect.flip);
+          const inWorktree = yield* move(worktreeThreadId, toProjectId).pipe(Effect.flip);
+          yield* move(threadId, toProjectId);
+          yield* worker.drain();
+          const moved = yield* orchestrator.getThreadProjection(threadId);
+          yield* sendAndComplete("after");
+          return {
+            refusals: [sameProject.cause, inWorktree.cause],
+            sessionsBefore: before.providerSessions.length,
+            moved,
+            projection: yield* orchestrator.getThreadProjection(threadId),
+            captured: yield* Ref.get(state),
+          };
+        }).pipe(
+          Effect.provide(
+            ProviderReplayHarness.layerWithRegistry(
+              { name: `project-move-${sessionKind}` },
+              ProviderAdapterRegistry.layerSingle(
+                makeRestartAdapter(
+                  state,
+                  sessionKind === "pooled" ? pooledCapabilities : exclusiveCapabilities,
+                ),
+              ),
+            ),
+          ),
+        );
+        const { refusals, sessionsBefore, moved, projection, captured } = result;
+
+        assert.deepEqual(refusals, [
+          `Thread ${threadId} is already there.`,
+          `Thread ${worktreeThreadId} works in a worktree. Only threads in the project folder can move.`,
+        ]);
+        assert.equal(moved.thread.projectId, toProjectId);
+        assert.isNull(moved.thread.branch);
+        assert.equal(sessionsBefore, 1);
+        assert.deepEqual(moved.providerSessions, []);
+        // A pooled session reloads the thread in the new folder; an exclusive one is replaced.
+        assert.deepEqual(
+          captured.opened.map((open) => open.cwd),
+          sessionKind === "pooled" ? [fromRoot] : [fromRoot, toRoot],
+        );
+        assert.deepEqual(
+          captured.started.map((turn) => turn.cwd),
+          [fromRoot, toRoot],
+        );
+        // The second turn continues the same native conversation rather than starting over.
+        assert.lengthOf(projection.providerThreads, 1);
+        assert.deepEqual(
+          projection.runs.map((run) => run.status),
+          ["completed", "completed"],
+        );
       }),
     ),
 );

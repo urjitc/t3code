@@ -124,6 +124,7 @@ import {
 } from "../threadSelectionStore";
 import {
   canTurnThreadIntoProject,
+  threadMoveTargets,
   useAcknowledgeThreadWoke,
   useThreadActions,
 } from "../hooks/useThreadActions";
@@ -927,6 +928,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
     confirmAndUnpinThread,
     setThreadAutoSettle,
     turnThreadIntoProject,
+    moveThreadToProject,
     reorderPinnedThread,
     reorderActiveThread,
     markThreadUnread,
@@ -1877,6 +1879,19 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       }
     })();
   };
+  const moveThreadAndReport = async (threadRef: ScopedThreadRef, projectId: ProjectId) => {
+    const result = await moveThreadToProject(threadRef, projectId);
+    if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
+      const error = squashAtomCommandFailure(result);
+      toastManager.add(
+        stackedThreadToast({
+          type: "error",
+          title: "Could not move thread",
+          description: error instanceof Error ? error.message : "An error occurred.",
+        }),
+      );
+    }
+  };
   const attemptUnpin = (threadRef: ScopedThreadRef) => {
     void (async () => {
       const result = await confirmAndUnpinThread(threadRef);
@@ -2647,6 +2662,7 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 canShareWithGuestAtom(threadRef.environmentId),
               ),
               canTurnIntoProject: canTurnThreadIntoProject(threadRef),
+              moveTargets: threadMoveTargets(threadRef),
               supports: {
                 settlement: configLoaded,
                 autoSettleOptOut: supportsAutoSettleOptOut,
@@ -2661,6 +2677,13 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         );
         if (clicked._tag === "Failure" || clicked.value === null) return;
         if (threadActionRequiresOperate(clicked.value) && !checkThreadOperations([thread])) return;
+        if (clicked.value.startsWith("move-to-project:")) {
+          await moveThreadAndReport(
+            threadRef,
+            ProjectId.make(clicked.value.slice("move-to-project:".length)),
+          );
+          return;
+        }
         if (clicked.value?.startsWith("snooze:")) {
           const preset =
             clicked.value === "snooze:custom"

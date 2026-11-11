@@ -3041,6 +3041,13 @@ export const OrchestrationV2Command = Schema.Union([
     commandId: CommandId,
     threadId: ThreadId,
   }),
+  /** Moves an idle thread that works in its project's folder to another project's folder. */
+  Schema.Struct({
+    type: Schema.Literal("thread.project.move"),
+    commandId: CommandId,
+    threadId: ThreadId,
+    projectId: ProjectId,
+  }),
   Schema.Struct({
     type: Schema.Literal("thread.tag.set"),
     commandId: CommandId,

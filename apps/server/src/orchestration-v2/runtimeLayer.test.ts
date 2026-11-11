@@ -7527,6 +7527,96 @@ it.layer(layerSharedApplicationDataPlaneTest)("snooze projection", (it) => {
       assert.equal(stayed?.projectId, scratchProjectId);
     }),
   );
+
+  it.effect("moves a thread its own agent moved once the turn completes", () =>
+    Effect.gen(function* () {
+      const orchestrator = yield* Orchestrator.OrchestratorV2;
+      const eventSink = yield* EventSink.EventSinkV2;
+      const projects = yield* ProjectService.ProjectService;
+      const threadManagement = yield* ThreadManagementService.ThreadManagementService;
+      const fromProjectId = ProjectId.make("runtime-layer-move-after-run-from");
+      const toProjectId = ProjectId.make("runtime-layer-move-after-run-to");
+      const threadId = ThreadId.make("runtime-layer-move-after-run-thread");
+      for (const [projectId, workspaceRoot] of [
+        [fromProjectId, "/tmp/runtime-layer-move-after-run-from"],
+        [toProjectId, "/tmp/runtime-layer-move-after-run-to"],
+      ] as const) {
+        yield* projects.create({
+          commandId: CommandId.make(`${projectId}-create`),
+          projectId,
+          title: projectId,
+          workspaceRoot,
+        });
+      }
+      yield* orchestrator.dispatch({
+        type: "thread.create",
+        createdBy: "user",
+        creationSource: "web",
+        commandId: CommandId.make("runtime-layer-move-after-run-create"),
+        threadId,
+        projectId: fromProjectId,
+        title: "Move after run",
+        modelSelection,
+        runtimeMode: "full-access",
+        interactionMode: "default",
+        branch: null,
+        worktreePath: null,
+      });
+      yield* orchestrator.dispatch({
+        type: "message.dispatch",
+        createdBy: "user",
+        creationSource: "web",
+        commandId: CommandId.make("runtime-layer-move-after-run-message"),
+        threadId,
+        messageId: MessageId.make("runtime-layer-move-after-run-message"),
+        text: "This belongs in the other project. Move it there.",
+        attachments: [],
+        modelSelection,
+        dispatchMode: { type: "start_immediately" },
+      });
+      const run = (yield* orchestrator.getThreadProjection(threadId)).runs[0];
+      if (run === undefined) return yield* Effect.die(new Error("Run missing."));
+
+      const moved = yield* orchestrator
+        .streamStoredEventsFrom({
+          threadId,
+          afterSequence: yield* orchestrator.getThreadEventSequence(threadId),
+          eventType: "thread.metadata-updated",
+        })
+        .pipe(Stream.runHead, Effect.forkChild);
+      const result = yield* threadManagement.moveThreadToProject({
+        threadId,
+        projectId: toProjectId,
+        commandId: CommandId.make("runtime-layer-move-after-run-move"),
+        byOwnAgent: true,
+      });
+      assert.deepEqual(result, { movesWhenTurnEnds: true });
+      assert.equal(
+        (yield* orchestrator.getThreadProjection(threadId)).thread.projectId,
+        fromProjectId,
+      );
+      const now = yield* DateTime.now;
+      yield* eventSink.write({
+        commandId: CommandId.make("runtime-layer-move-after-run-completed"),
+        events: [
+          {
+            id: EventId.make("runtime-layer-move-after-run-completed"),
+            type: "run.updated",
+            threadId,
+            runId: run.id,
+            occurredAt: now,
+            payload: { ...run, status: "completed", startedAt: now, completedAt: now },
+          },
+        ],
+      });
+      yield* Fiber.join(moved);
+
+      assert.equal(
+        (yield* orchestrator.getThreadProjection(threadId)).thread.projectId,
+        toProjectId,
+      );
+    }),
+  );
 });
 
 it.layer(layerSharedApplicationDataPlaneTest)("visited projection", (it) => {

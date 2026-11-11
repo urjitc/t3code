@@ -40,12 +40,12 @@ edit, the same way earlier removals did (empty registries, feature flags), rathe
 
 1. `mise exec -- corepack pnpm install`
 2. `mise exec -- corepack pnpm typecheck`, `lint`, `knip:check`. All must pass.
-3. Web and server tests (`vp test` in `apps/web` and `apps/server`). On macOS set
-   `TMPDIR=/private/tmp` to dodge the `/var` symlink. Known failures that are not ours:
-   AgentSessionScanner "still reads the git identity…", AntigravityInstallation "accepts the agy
-   CLI without a harness sibling…" (expects `agy.cmd` casing, which macOS's case-insensitive disk
-   breaks), and ServerBrowserPage tests when Playwright Chromium isn't installed. Report any other
+3. Web and server tests (`vp test` in `apps/web` and `apps/server`). The only known failure that
+   is not ours: ServerBrowserPage tests when Playwright Chromium isn't installed. Report any other
    failure and stop before pushing.
+
+For fork feature branches, run `vp run check:changed main-custom`. Without the ref it compares
+against upstream `main` and checks every file the fork has changed.
 
 ## 4. Push and build
 

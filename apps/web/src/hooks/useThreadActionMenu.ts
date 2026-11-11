@@ -10,6 +10,7 @@ import {
 import { canSnooze, effectiveSnoozed } from "@t3tools/client-runtime/state/thread-settled";
 import {
   AuthOrchestrationOperateScope,
+  ProjectId,
   type ScopedThreadRef,
   type ThreadId,
 } from "@t3tools/contracts";
@@ -46,7 +47,7 @@ import { threadRuntimeCanArchive } from "@t3tools/client-runtime/state/models";
 import { useCopyToClipboard } from "./useCopyToClipboard";
 import { useNewThreadHandler } from "./useHandleNewThread";
 import { useClientSettings } from "./useSettings";
-import { canTurnThreadIntoProject, useThreadActions } from "./useThreadActions";
+import { canTurnThreadIntoProject, threadMoveTargets, useThreadActions } from "./useThreadActions";
 
 function failureToast(title: string, error: unknown) {
   toastManager.add(
@@ -87,6 +88,7 @@ export function useThreadActionMenu(input: {
     deleteThread,
     markThreadUnread,
     turnThreadIntoProject,
+    moveThreadToProject,
   } = useThreadActions();
   const updateThreadMetadata = useOrchestrationCommand(threadEnvironment.updateMetadata, {
     reportFailure: false,
@@ -149,6 +151,7 @@ export function useThreadActionMenu(input: {
         snoozePresets,
         canShareWithGuest,
         canTurnIntoProject: canTurnThreadIntoProject(threadRef),
+        moveTargets: threadMoveTargets(threadRef),
       });
       const clicked = await settlePromise(() => api.contextMenu.show(items, position));
       if (clicked._tag === "Failure" || clicked.value === null) return;
@@ -177,6 +180,14 @@ export function useThreadActionMenu(input: {
         const result = await snoozeThread(threadRef, preset.snoozedUntil);
         if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
           failureToast("Failed to snooze thread", squashAtomCommandFailure(result));
+        }
+        return;
+      }
+      if (action.startsWith("move-to-project:")) {
+        const projectId = ProjectId.make(action.slice("move-to-project:".length));
+        const result = await moveThreadToProject(threadRef, projectId);
+        if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
+          failureToast("Could not move thread", squashAtomCommandFailure(result));
         }
         return;
       }

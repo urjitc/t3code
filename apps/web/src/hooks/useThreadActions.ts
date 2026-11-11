@@ -12,6 +12,7 @@ import {
   AuthSourceControlWriteScope,
   EnvironmentAuthorizationError,
   EnvironmentId,
+  type ProjectId,
   type ScopedThreadRef,
   ThreadId,
   sessionGrantsScope,
@@ -41,6 +42,7 @@ import {
   readEnvironmentSupportsAutoSettleOptOut,
   readEnvironmentThreadRefs,
   readProject,
+  readProjects,
   readThreadShell,
   readThreadShells,
 } from "../state/entities";
@@ -260,6 +262,27 @@ export function canTurnThreadIntoProject(threadRef: ScopedThreadRef): boolean {
   return project !== null && isScratchProject(project, config.scratchWorkspaceRoot);
 }
 
+/** Projects a thread working in its project's own folder can move to; empty for worktree threads. */
+export function threadMoveTargets(
+  threadRef: ScopedThreadRef,
+): ReadonlyArray<{ readonly id: ProjectId; readonly title: string }> {
+  const thread = readThreadShell(threadRef);
+  if (!thread || thread.worktreePath) return [];
+  const scratchRoot = appAtomRegistry
+    .get(environmentServerConfigsAtom)
+    .get(threadRef.environmentId)?.scratchWorkspaceRoot;
+  return readProjects()
+    .filter(
+      (project) =>
+        project.environmentId === threadRef.environmentId &&
+        project.id !== thread.projectId &&
+        project.archivedAt == null &&
+        !isScratchProject(project, scratchRoot),
+    )
+    .map((project) => ({ id: project.id, title: project.title }))
+    .toSorted((a, b) => a.title.localeCompare(b.title));
+}
+
 function threadOperationFailure(target: ScopedThreadRef) {
   return readEnvironmentScope(target.environmentId, AuthOrchestrationOperateScope)
     ? null
@@ -293,6 +316,9 @@ export function useThreadActions() {
     reportFailure: false,
   });
   const unpinThreadMutation = useOrchestrationCommand(threadEnvironment.unpin, {
+    reportFailure: false,
+  });
+  const moveThreadMutation = useOrchestrationCommand(threadEnvironment.moveToProject, {
     reportFailure: false,
   });
   const setThreadAutoSettleMutation = useOrchestrationCommand(threadEnvironment.setAutoSettle, {
@@ -783,6 +809,28 @@ export function useThreadActions() {
     return result;
   };
 
+  const moveThreadToProject = async (target: ScopedThreadRef, projectId: ProjectId) => {
+    const fromProjectId = readThreadShell(target)?.projectId;
+    const move = (to: ProjectId) =>
+      moveThreadMutation({
+        environmentId: target.environmentId,
+        input: { threadId: target.threadId, projectId: to },
+      });
+    const action = ThreadUndo.begin("move", scopedThreadKey(target));
+    const result = await move(projectId);
+    if (result._tag === "Success" && fromProjectId !== undefined && action.isCurrent()) {
+      showThreadUndoNotice({
+        action: "Moved",
+        claim: action,
+        undo: () => move(fromProjectId),
+        failureTitle: "Failed to move thread back",
+      });
+    } else {
+      action.finish();
+    }
+    return result;
+  };
+
   const settleThread = async (target: ScopedThreadRef) => {
     if (!readEnvironmentServerConfigLoaded(target.environmentId)) {
       return AsyncResult.failure(
@@ -1000,6 +1048,7 @@ export function useThreadActions() {
     unsnoozeThread,
     pinThread,
     unpinThread,
+    moveThreadToProject,
     confirmAndUnpinThread,
     reorderPinnedThread,
     reorderActiveThread,

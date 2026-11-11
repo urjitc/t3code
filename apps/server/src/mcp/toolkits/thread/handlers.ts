@@ -341,6 +341,21 @@ export const layer = McpToolAccess.toLayer(ThreadToolkit, {
           .settleThread({ ...common, byOwnAgent: caller?.id === projection.thread.id })
           .pipe(Effect.mapError(dispatchFailure));
       }
+      if (input.action === "move") {
+        if (input.projectId === undefined) {
+          return yield* new OrchestratorMcpFailure({
+            code: "invalid_request",
+            message: "move requires projectId.",
+          });
+        }
+        return yield* threads
+          .moveThreadToProject({
+            ...common,
+            projectId: input.projectId,
+            byOwnAgent: caller?.id === projection.thread.id,
+          })
+          .pipe(Effect.mapError(dispatchFailure));
+      }
       let command: OrchestrationV2Command;
       switch (input.action) {
         case "snooze":

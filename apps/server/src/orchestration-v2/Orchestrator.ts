@@ -585,6 +585,7 @@ function commandThreadId(command: OrchestrationV2ServerCommand): ThreadId {
     case "thread.pull-request.sync":
     case "thread.title.regeneration.complete":
     case "thread.project.adopt-folder":
+    case "thread.project.move":
     case "thread.runtime-mode.set":
     case "thread.interaction-mode.set":
     case "thread.model-selection.set":
@@ -4570,55 +4571,103 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
     },
   );
 
-  const dispatchThreadProjectAdoptFolder = Effect.fn(
-    "orchestrationV2.dispatch.threadProjectAdoptFolder",
-  )(function* (
-    command: Extract<
-      OrchestrationV2ServerCommand,
-      { readonly type: "thread.project.adopt-folder" }
-    >,
-    events: Ref.Ref<Array<OrchestrationV2DomainEvent>>,
-  ) {
-    const reject = (cause: string) =>
-      new OrchestratorDispatchError({
-        commandId: command.commandId,
-        commandType: command.type,
-        cause: `Thread ${command.threadId} ${cause}`,
+  // Adopt-folder keeps the thread's cwd. A move lands it in another project's folder, so its
+  // provider sessions end and the next run resumes the native conversation there.
+  const dispatchThreadProjectChange = Effect.fn("orchestrationV2.dispatch.threadProjectChange")(
+    function* (
+      command: Extract<
+        OrchestrationV2ServerCommand,
+        { readonly type: "thread.project.adopt-folder" | "thread.project.move" }
+      >,
+      events: Ref.Ref<Array<OrchestrationV2DomainEvent>>,
+      effects: Ref.Ref<Array<PendingOrchestrationEffectV2>>,
+    ) {
+      const reject = (cause: string) =>
+        new OrchestratorDispatchError({
+          commandId: command.commandId,
+          commandType: command.type,
+          cause: `Thread ${command.threadId} ${cause}`,
+        });
+      const projection = yield* projectionStore
+        .getThreadRecords(command.threadId, ["runs", "runtimeRequests", "providerSessions"], {
+          turnItemTypes: [],
+        })
+        .pipe(
+          Effect.mapError(
+            (cause) => new OrchestratorProjectionError({ threadId: command.threadId, cause }),
+          ),
+        );
+      const thread = projection.thread;
+      if (thread.deletedAt !== null) return yield* reject("is deleted.");
+      if (threadHasUnfinishedWork(projection)) {
+        return yield* reject("still has work in progress. Finish or stop it first.");
+      }
+      const current = yield* projects.get(thread.projectId).pipe(mapDispatchError(command));
+      const target = yield* projects.get(command.projectId).pipe(mapDispatchError(command));
+      if (Option.isNone(target) || target.value.deletedAt !== null) {
+        return yield* reject(`cannot move to missing project ${command.projectId}.`);
+      }
+      const isMove = command.type === "thread.project.move";
+      if (isMove) {
+        if (thread.projectId === command.projectId) return yield* reject("is already there.");
+        // A worktree belongs to the old project's repository; moving would strand it.
+        if (thread.worktreePath !== null) {
+          return yield* reject("works in a worktree. Only threads in the project folder can move.");
+        }
+      } else {
+        const cwd = thread.worktreePath ?? Option.getOrUndefined(current)?.workspaceRoot;
+        if (cwd !== target.value.workspaceRoot) {
+          return yield* reject(`does not work in ${target.value.workspaceRoot}.`);
+        }
+      }
+      const now = yield* DateTime.now;
+      yield* emit(
+        events,
+        command,
+      )({
+        type: "thread.metadata-updated",
+        threadId: command.threadId,
+        providerInstanceId: thread.providerInstanceId,
+        occurredAt: now,
+        payload: {
+          ...thread,
+          projectId: command.projectId,
+          worktreePath: null,
+          ...(isMove ? { branch: null } : {}),
+          updatedAt: now,
+        },
       });
-    const projection = yield* projectionStore
-      .getThreadRecords(command.threadId, ["runs", "runtimeRequests"], { turnItemTypes: [] })
-      .pipe(
-        Effect.mapError(
-          (cause) => new OrchestratorProjectionError({ threadId: command.threadId, cause }),
-        ),
-      );
-    const thread = projection.thread;
-    if (thread.deletedAt !== null) return yield* reject("is deleted.");
-    if (threadHasUnfinishedWork(projection)) {
-      return yield* reject("still has work in progress. Finish or stop it first.");
-    }
-    const current = yield* projects.get(thread.projectId).pipe(mapDispatchError(command));
-    const target = yield* projects.get(command.projectId).pipe(mapDispatchError(command));
-    if (Option.isNone(target) || target.value.deletedAt !== null) {
-      return yield* reject(`cannot move to missing project ${command.projectId}.`);
-    }
-    // The thread always lands in the project root, so the move must not change its cwd.
-    const cwd = thread.worktreePath ?? Option.getOrUndefined(current)?.workspaceRoot;
-    if (cwd !== target.value.workspaceRoot) {
-      return yield* reject(`does not work in ${target.value.workspaceRoot}.`);
-    }
-    const now = yield* DateTime.now;
-    yield* emit(
-      events,
-      command,
-    )({
-      type: "thread.metadata-updated",
-      threadId: command.threadId,
-      providerInstanceId: thread.providerInstanceId,
-      occurredAt: now,
-      payload: { ...thread, projectId: command.projectId, worktreePath: null, updatedAt: now },
-    });
-  });
+      if (!isMove) return;
+      const reason = "Thread moved to another project.";
+      for (const session of projection.providerSessions) {
+        if (session.status === "stopped" || session.status === "error") continue;
+        yield* emit(
+          events,
+          command,
+        )({
+          type: "provider-session.detached",
+          threadId: command.threadId,
+          driver: session.driver,
+          providerInstanceId: session.providerInstanceId,
+          occurredAt: now,
+          payload: { providerSessionId: session.id, detachedAt: now, reason },
+        });
+        yield* Ref.update(effects, (existing) => [
+          ...existing,
+          {
+            id: `effect:${command.commandId}:provider-session.detach:${session.id}`,
+            commandId: command.commandId,
+            threadId: command.threadId,
+            request: {
+              type: "provider-session.detach",
+              providerSessionId: session.id,
+              detail: reason,
+            },
+          } satisfies PendingOrchestrationEffectV2,
+        ]);
+      }
+    },
+  );
 
   const refuseAboveDispatchModeLimit = Effect.fn("orchestrationV2.dispatch.refuseAboveModeLimit")(
     function* (
@@ -13575,7 +13624,8 @@ const makeOrchestrator = Effect.fn("orchestrationV2.Orchestrator.layer")(functio
         yield* dispatchProviderSessionDetach(command, events, effects);
         break;
       case "thread.project.adopt-folder":
-        yield* dispatchThreadProjectAdoptFolder(command, events);
+      case "thread.project.move":
+        yield* dispatchThreadProjectChange(command, events, effects);
         break;
       case "message.dispatch": {
         // Providers own native subagent conversations; messages cannot target them, and adapters ask questions on the parent.

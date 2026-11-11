@@ -101,6 +101,10 @@ export interface PinThreadInput extends ThreadCommandInput {
 }
 export type UnpinThreadInput = ThreadCommandInput;
 
+export interface MoveThreadToProjectInput extends ThreadCommandInput {
+  readonly projectId: ProjectId;
+}
+
 export interface ReorderPinnedThreadInput extends ThreadCommandInput {
   readonly orderKey: string;
 }
@@ -550,6 +554,17 @@ export const unpinThread = Effect.fn("EnvironmentCommands.unpinThread")(function
   input: UnpinThreadInput,
 ) {
   return yield* simpleThreadCommand("thread.unpin", input);
+});
+
+export const moveThreadToProject = Effect.fn("EnvironmentCommands.moveThreadToProject")(function* (
+  input: MoveThreadToProjectInput,
+) {
+  return yield* dispatch({
+    type: "thread.project.move",
+    commandId: yield* allocateCommandId(input),
+    threadId: input.threadId,
+    projectId: input.projectId,
+  });
 });
 
 export const unsettleThread = Effect.fn("EnvironmentCommands.unsettleThread")(function* (

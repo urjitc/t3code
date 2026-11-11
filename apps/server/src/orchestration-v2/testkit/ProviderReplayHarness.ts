@@ -10,6 +10,7 @@ import type {
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as PlatformError from "effect/PlatformError";
 import type * as Scope from "effect/Scope";
@@ -61,6 +62,7 @@ import * as RunExecutionService from "../RunExecutionService.ts";
 import * as RunFinalizationService from "../RunFinalizationService.ts";
 import * as ThreadTitleRegenerationService from "../ThreadTitleRegenerationService.ts";
 import * as RuntimePolicy from "../RuntimePolicy.ts";
+import * as ProviderAdapter from "@t3tools/provider-core/server/ProviderAdapter";
 import * as TurnItemPositionStore from "../TurnItemPositionStore.ts";
 import * as RuntimeRequestService from "../RuntimeRequestService.ts";
 import * as ThreadCommandExecutor from "../ThreadCommandExecutor.ts";
@@ -289,7 +291,8 @@ export function layerWithRegistry<Error>(
   | EffectWorker.OrchestrationEffectWorkerV2
   | EventSink.EventSinkV2
   | ProviderSessionManager.ProviderSessionManagerV2
-  | CommandOutputRecorder.CommandOutputRecorder,
+  | CommandOutputRecorder.CommandOutputRecorder
+  | ProjectStore.ProjectStoreV2,
   Error | MigrationError | PlatformError.PlatformError | SqlError
 > {
   const layerServerConfig = Layer.effect(
@@ -333,8 +336,36 @@ export function layerWithRegistry<Error>(
   const layerEventSinkProvided = EventSink.layerFromStores.pipe(
     Layer.provide(Layer.mergeAll(layerStores, layerDatabase)),
   );
+  // Like production, a thread without a worktree runs in its project's folder.
+  const layerRuntimeWithProjectFolders = Layer.effect(
+    RuntimePolicy.RuntimePolicyV2,
+    Effect.gen(function* () {
+      const base = yield* RuntimePolicy.RuntimePolicyV2;
+      const projects = yield* ProjectStore.ProjectStoreV2;
+      return {
+        resolve: (input) =>
+          base.resolve(input).pipe(
+            Effect.filterOrElse(
+              (policy) => policy.cwd != null,
+              (policy) =>
+                projects.get(input.thread.projectId).pipe(
+                  Effect.orDie,
+                  Effect.map((project) =>
+                    Option.isNone(project)
+                      ? policy
+                      : ProviderAdapter.ProviderAdapterV2RuntimePolicy.make({
+                          ...policy,
+                          cwd: project.value.workspaceRoot,
+                        }),
+                  ),
+                ),
+            ),
+          ),
+      } satisfies RuntimePolicy.RuntimePolicyV2Shape;
+    }),
+  ).pipe(Layer.provide(Layer.merge(layerRuntimeBase, layerStores)));
   const layerRuntime = RuntimePolicy.layerEnforcingCeiling.pipe(
-    Layer.provide(Layer.merge(layerRuntimeBase, layerServerSettings)),
+    Layer.provide(Layer.merge(layerRuntimeWithProjectFolders, layerServerSettings)),
   );
   const layerCommandReceiptStoreProvided = CommandReceiptStore.layer.pipe(
     Layer.provide(layerDatabase),
@@ -536,6 +567,7 @@ export function layerWithRegistry<Error>(
   );
   const layerReplayRuntime = Layer.mergeAll(
     layerOrchestratorProvided,
+    layerStores,
     layerProviderSessionManagerProvided,
     layerEffectWorkerProvided,
     layerEventSinkProvided,

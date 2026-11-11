@@ -265,6 +265,7 @@ import { buildSidebarProjectPickerEntries } from "../sidebarProjectGrouping";
 import { PullRequestGlyph } from "~/components/pullRequest/pullRequestIcons";
 import { readPullRequestListPreferences } from "~/components/pullRequest/pullRequestListPreferences";
 import { useThreadRouteTarget } from "../hooks/useThreadRouteTarget";
+import { threadMoveTargets, useThreadActions } from "../hooks/useThreadActions";
 import { threadRecentUse } from "@t3tools/shared/paletteSearch";
 import { isPullRequestsFeatureEnabled } from "../env";
 
@@ -468,6 +469,7 @@ function OpenCommandPaletteDialog(props: {
   const desktopLocalBootstraps = useDesktopLocalBootstraps();
   const primaryEnvironmentId = usePrimaryEnvironmentId();
   const availableSettingsSearchItems = useAvailableSettingsSearchItems();
+  const { moveThreadToProject } = useThreadActions();
   const { activeDraftThread, activeThread, defaultProjectRef, handleNewThread } =
     useHandleNewThread();
   const paletteRouteTarget = useThreadRouteTarget();
@@ -1324,6 +1326,46 @@ function OpenCommandPaletteDialog(props: {
       description: "An agent investigates a T3 Code problem and helps file an issue",
       icon: <BugIcon className={ITEM_ICON_CLASS} />,
       run: () => startTriage(triageEnvironmentId),
+    });
+  }
+
+  const activeThreadRef =
+    activeThread === null ? null : scopeThreadRef(activeThread.environmentId, activeThread.id);
+  const moveTargets = activeThreadRef === null ? [] : threadMoveTargets(activeThreadRef);
+  if (activeThreadRef !== null && moveTargets.length > 0) {
+    actionItems.push({
+      kind: "submenu",
+      value: "action:move-thread-to",
+      searchTerms: ["move", "thread", "project", "transfer", "relocate"],
+      title: "Move thread to...",
+      icon: <FolderIcon className={ITEM_ICON_CLASS} />,
+      addonIcon: <FolderIcon className={ADDON_ICON_CLASS} />,
+      groups: [
+        {
+          value: "move-thread-to",
+          label: "Projects",
+          items: moveTargets.map((target) => ({
+            kind: "action" as const,
+            value: `move-thread-to:${target.id}`,
+            searchTerms: [target.title],
+            title: target.title,
+            icon: <FolderIcon className={ITEM_ICON_CLASS} />,
+            run: async () => {
+              const result = await moveThreadToProject(activeThreadRef, target.id);
+              if (result._tag === "Failure" && !isAtomCommandInterrupted(result)) {
+                const error = squashAtomCommandFailure(result);
+                toastManager.add(
+                  stackedThreadToast({
+                    type: "error",
+                    title: "Could not move thread",
+                    description: error instanceof Error ? error.message : "An error occurred.",
+                  }),
+                );
+              }
+            },
+          })),
+        },
+      ],
     });
   }
 

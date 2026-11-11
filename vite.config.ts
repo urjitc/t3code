@@ -1,5 +1,8 @@
 import "vite-plus/test/config";
 import { defineConfig } from "vite-plus";
+// @effect-diagnostics-next-line nodeBuiltinImport:off -- the config runs synchronously, outside Effect.
+import * as NodeFS from "node:fs";
+import * as NodeOS from "node:os";
 import * as NodeURL from "node:url";
 import { remoteCacheUrl } from "./infra/task-cache/src/remoteCache.ts";
 import { cachedTestTasks } from "./scripts/lib/cached-tests.ts";
@@ -107,7 +110,12 @@ export default defineConfig({
   test: {
     environment: "node",
     // Fixture subprocesses must not inherit the outer task runner’s cache policy.
-    env: { VP_REMOTE_CACHE: "off", VP_REMOTE_CACHE_URL: "" },
+    // Tests compare resolved paths; macOS's default TMPDIR sits behind the /var symlink.
+    env: {
+      VP_REMOTE_CACHE: "off",
+      VP_REMOTE_CACHE_URL: "",
+      TMPDIR: NodeFS.realpathSync(NodeOS.tmpdir()),
+    },
     exclude: TEST_EXCLUDE,
     hookTimeout: 60_000,
     testTimeout: 60_000,

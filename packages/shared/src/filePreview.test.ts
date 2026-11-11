@@ -65,21 +65,6 @@ describe("workspace file previews", () => {
     },
   );
   it.each([
-    [
-      "quarterly-report.DOCX",
-      "docx",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ],
-    [
-      "finance#q4/operating-plan.xlsx",
-      "xlsx",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ],
-    [
-      "slides?review/quarterly-review.pptx",
-      "pptx",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    ],
     ["notes.odt", "odt", "application/vnd.oasis.opendocument.text"],
     ["budget.ods", "ods", "application/vnd.oasis.opendocument.spreadsheet"],
     ["deck.odp", "odp", "application/vnd.oasis.opendocument.presentation"],

@@ -90,7 +90,7 @@ export function useUpstreamSync() {
       return;
     }
     const confirmed = await requestConfirmDialog(
-      `Sync Tabula with upstream ${target}?\nAn agent will merge upstream into main-custom, run checks, push and rebuild. Tabula restarts only when you tell the agent to.`,
+      `Sync Tabula with upstream ${target}?\nAn agent will merge upstream into main, run checks, push and rebuild. Tabula restarts only when you tell the agent to.`,
     );
     if (!confirmed) return;
 

@@ -1,15 +1,15 @@
 # Upstream sync playbook
 
-Tabula Rasa is a personal fork of T3 Code (`pingdotgg/t3code`). Branch `main-custom` tracks
-upstream **stable tags** (`vX.Y.Z`), never upstream `main`. Remote `upstream` is pingdotgg,
+Tabula Rasa is a personal fork of T3 Code (`pingdotgg/t3code`). Branch `main` tracks
+upstream **stable tags** (`vX.Y.Z`), never `upstream/main`. Remote `upstream` is pingdotgg,
 `origin` is the fork. The sidebar "Sync with upstream" button starts an agent on this file.
 
 Run every command from the repo root with `mise exec -- corepack pnpm ...`.
 
 ## 1. Prepare
 
-1. `git status` must be clean and the branch must be `main-custom`. If not, stop and report.
-2. `git fetch upstream --tags` and `git fetch origin`. Pull `origin/main-custom` if it is ahead.
+1. `git status` must be clean and the branch must be `main`. If not, stop and report.
+2. `git fetch upstream --tags` and `git fetch origin`. Pull `origin/main` if it is ahead.
 3. Pick the target: the tag named in the prompt, or else the newest `vX.Y.Z` tag with no suffix
    (`git tag -l 'v*' --sort=-v:refname | grep -vE -- '-' | head -1`).
 4. If the target is already an ancestor of `HEAD` (`git merge-base --is-ancestor`), report
@@ -44,12 +44,12 @@ edit, the same way earlier removals did (empty registries, feature flags), rathe
    is not ours: ServerBrowserPage tests when Playwright Chromium isn't installed. Report any other
    failure and stop before pushing.
 
-For fork feature branches, run `vp run check:changed main-custom`. Without the ref it compares
-against upstream `main` and checks every file the fork has changed.
+For fork feature branches, run `vp run check:changed main` so it compares against the fork,
+not upstream.
 
 ## 4. Push and build
 
-1. `git push origin main-custom`.
+1. `git push origin main`.
 2. `mise exec -- corepack pnpm dist:desktop:dmg:arm64` (about 75 s).
 
 ## 5. Report, then wait to install

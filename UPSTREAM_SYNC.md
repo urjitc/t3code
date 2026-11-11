@@ -42,8 +42,10 @@ edit, the same way earlier removals did (empty registries, feature flags), rathe
 2. `mise exec -- corepack pnpm typecheck`, `lint`, `knip:check`. All must pass.
 3. Web and server tests (`vp test` in `apps/web` and `apps/server`). On macOS set
    `TMPDIR=/private/tmp` to dodge the `/var` symlink. Known failures that are not ours:
-   AgentSessionScanner "still reads the git identity…", and ServerBrowserPage tests when
-   Playwright Chromium isn't installed. Report any other failure and stop before pushing.
+   AgentSessionScanner "still reads the git identity…", AntigravityInstallation "accepts the agy
+   CLI without a harness sibling…" (expects `agy.cmd` casing, which macOS's case-insensitive disk
+   breaks), and ServerBrowserPage tests when Playwright Chromium isn't installed. Report any other
+   failure and stop before pushing.
 
 ## 4. Push and build
 
